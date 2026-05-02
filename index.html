@@ -1,265 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cursor Chaos</title>
+
+
+  //transparent to black
   <style>
     * {
+
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
+    html,
     body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      background: #0a0a0a;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #000000;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
+
     canvas {
+      position: fixed;
+      inset: 0;
       display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #000000;
       cursor: crosshair;
+      z-index: 1;
     }
+
 
     #ui {
       position: fixed;
       top: 20px;
       left: 20px;
+      z-index: 2;
       color: white;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 10px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 18px;
       user-select: none;
     }
 
     #ui h1 {
-      font-size: 20px;
-      margin-bottom: 10px;
-      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 12px;
     }
 
-    #ui .mode {
+    .mode {
       font-size: 14px;
-      margin: 5px 0;
-      opacity: 0.5;
-      transition: all 0.3s;
+      padding: 6px 8px;
+      margin: 4px 0;
+      border-radius: 6px;
+      opacity: 0.55;
       cursor: pointer;
-      padding: 5px;
-      border-radius: 5px;
+      transition: 0.2s;
     }
 
-    #ui .mode.active {
+
+    .mode:hover {
+      opacity: 0.85;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+
+    .mode.active {
       opacity: 1;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.15);
+
       font-weight: bold;
     }
 
-    #ui .hint {
-      margin-top: 15px;
+    .hint {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
       font-size: 12px;
-      opacity: 0.6;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 10px;
-    }
-
-    #ui .mode:hover {
-      opacity: 0.8;
+      line-height: 1.5;
+      opacity: 0.7;
     }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
-  
+
   <div id="ui">
     <h1>Cursor Chaos</h1>
+
     <div class="mode active" data-mode="attract">1 - Attract</div>
     <div class="mode" data-mode="repel">2 - Repel</div>
+
     <div class="mode" data-mode="swirl">3 - Swirl</div>
     <div class="mode" data-mode="chaos">4 - Chaos</div>
     <div class="mode" data-mode="gravity">5 - Gravity</div>
+
     <div class="hint">
-      Move mouse<br>
-      Click to explode<br>
-      Press 1-5 to switch
+      Move mouse = interact<br />
+      Click = explosion<br />
+      Press 1-5 = switch mode
     </div>
   </div>
 
+
+
   <script>
+
     const canvas = document.getElementById("canvas");
+
     const ctx = canvas.getContext("2d");
 
-    
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let width;
+    let height;
 
-    
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    function resizeCanvas() {
+      width = window.innerWidth;
+
+      height = window.innerHeight;
+
+      canvas.width = width;
+      canvas.height = height;
 
 
 
 
-    const mouse = { 
-      x: canvas.width / 2, 
-      y: canvas.height / 2 
+      ctx.globalAlpha = 1;
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    resizeCanvas();
+
+    window.addEventListener("resize", resizeCanvas);
+
+    const mouse = {
+      x: width / 2,
+      y: height / 2
     };
 
-    window.addEventListener("mousemove", (e) => {
+
+    window.addEventListener("mousemove", function (e) {
       mouse.x = e.clientX;
+
       mouse.y = e.clientY;
     });
 
     const particles = [];
-    const particleCount = 150;
+    const particleCount = 160;
 
     class Particle {
       constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.vx = 0;
-        this.vy = 0;
-        this.size = Math.random() * 2 + 1;
+        this.reset();
       }
 
 
+      reset() {
+        this.x = Math.random() * width;
 
+        this.y = Math.random() * height;
+        this.vx = 0;
+
+        this.vy = 0;
+        this.size = Math.random() * 2.2 + 1;
+      }
 
       update(mode) {
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
+
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        switch(mode) {
-          case "attract":
-            this.vx += dx * 0.0003;
-            this.vy += dy * 0.0003;
-            break;
-
-          case "repel":
-            this.vx -= dx * 0.0005;
-            this.vy -= dy * 0.0005;
-            break;
-
-          case "swirl":
-            const angle = Math.atan2(dy, dx);
-            this.vx += Math.cos(angle + Math.PI / 2) * 0.05;
-            this.vy += Math.sin(angle + Math.PI / 2) * 0.05;
-            this.vx += dx * 0.0001;
-            this.vy += dy * 0.0001;
-            break;
-
-          case "chaos":
-            this.vx += (Math.random() - 0.5) * 0.5;
-            this.vy += (Math.random() - 0.5) * 0.5;
-            this.vx += dx * 0.0001;
-            this.vy += dy * 0.0001;
-            break;
-
-          case "gravity":
-            this.vy += 0.1;
-            this.vx += dx * 0.0002;
-            if (this.y > canvas.height) {
-              this.y = 0;
-              this.vy = 0;
-            }
-            break;
+        if (mode === "attract") {
+          this.vx += dx * 0.00045;
+          this.vy += dy * 0.00045;
         }
 
-        
+
+
+        if (mode === "repel") {
+          this.vx -= dx * 0.00055;
+
+          this.vy -= dy * 0.00055;
+        }
+
+
+        if (mode === "swirl") {
+          const angle = Math.atan2(dy, dx);
+
+          this.vx += Math.cos(angle + Math.PI / 2) * 0.06;
+          this.vy += Math.sin(angle + Math.PI / 2) * 0.06;
+
+          this.vx += dx * 0.00012;
+          this.vy += dy * 0.00012;
+        }
+
+        if (mode === "chaos") {
+          this.vx += (Math.random() - 0.5) * 0.45;
+
+          this.vy += (Math.random() - 0.5) * 0.45;
+
+          this.vx += dx * 0.00012;
+          this.vy += dy * 0.00012;
+        }
+
+        if (mode === "gravity") {
+          this.vy += 0.12;
+          this.vx += dx * 0.0002;
+
+
+          if (this.y > height + 20) {
+            this.y = -20;
+            this.x = Math.random() * width;
+            this.vy = 0;
+            this.vx = 0;
+          }
+        }
+
+
         this.vx *= 0.95;
         this.vy *= 0.95;
 
-
-    
         this.x += this.vx;
         this.y += this.vy;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.x > canvas.width) this.x = 0;
-        if (this.y < 0) this.y = canvas.height;
-        if (mode !== "gravity" && this.y > canvas.height) this.y = 0;
+
+        if (this.x < -20) this.x = width + 20;
+
+        if (this.x > width + 20) this.x = -20;
+
+        if (mode !== "gravity") {
+          if (this.y < -20) this.y = height + 20;
+          if (this.y > height + 20) this.y = -20;
+        }
       }
+
 
       draw() {
         ctx.beginPath();
+
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+
         ctx.fill();
       }
     }
 
-    // Create particles
+
     for (let i = 0; i < particleCount; i++) {
+
       particles.push(new Particle());
     }
 
-    
     let currentMode = "attract";
 
-    // Mode switching
     const modeElements = document.querySelectorAll(".mode");
-    
+
+
     function setMode(mode) {
       currentMode = mode;
-      modeElements.forEach(el => {
+
+      modeElements.forEach(function (el) {
+
         el.classList.toggle("active", el.dataset.mode === mode);
       });
     }
 
-    // Kyboard 
-    window.addEventListener("keydown", (e) => {
+
+    window.addEventListener("keydown", function (e) {
+
       const modes = ["attract", "repel", "swirl", "chaos", "gravity"];
-      const key = parseInt(e.key);
+      const key = Number(e.key);
+
       if (key >= 1 && key <= 5) {
         setMode(modes[key - 1]);
       }
     });
 
-    // changing mode in ui
-    modeElements.forEach(el => {
-      el.addEventListener("click", () => {
+    modeElements.forEach(function (el) {
+      el.addEventListener("click", function (e) {
+
+        e.stopPropagation();
         setMode(el.dataset.mode);
       });
     });
 
-  
-    window.addEventListener("click", (e) => {
-      particles.forEach(p => {
+
+
+
+    window.addEventListener("click", function () {
+      particles.forEach(function (p) {
         const dx = p.x - mouse.x;
+
         const dy = p.y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
         const force = 8;
+
         p.vx += (dx / dist) * force;
         p.vy += (dy / dist) * force;
       });
     });
 
-  
-
+    //particles
     function animate() {
-      // Trail effect (instead of full clear)
-      ctx.fillStyle = "rgba(10, 10, 10, 0.15)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
 
-      // particle style
-      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = "white";
+
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
 
       
 
-      particles.forEach(p => {
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+      ctx.fillRect(0, 0, width, height);
+
+      
+      ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+
+      particles.forEach(function (p) {
         p.update(currentMode);
+
         p.draw();
       });
 
       requestAnimationFrame(animate);
     }
 
+
+    
     animate();
   </script>
 </body>

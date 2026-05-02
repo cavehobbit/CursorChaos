@@ -1,94 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CursorChaos</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0f0f0f;
-      overflow: hidden;
-    }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, inital-scale=1.0">
+    <title> Cursor Chaos</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f0f0f;
+        overflow: hidden;
+      }
 
-    canvas {
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <canvas id="canvas"></canvas>
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
 
-  <script>
-  
+  <body>
+    <canvas id="canvas"></canvas>
 
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+      canvas.clientWidth = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+      const mouse = {
+        x: canvas.width / 2,
+        y: canvas.height / 2
+      };
 
-    // mouse posioton
-    const mouse = { 
-      x: canvas.width / 2, 
-      y: canvas.height / 2 
-    };
-
-	
-
-    window.addEventListener("mousemove", (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    });
-
-
-	
-    const particles = [];
-
-    for (let i = 0; i < 100; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: 0,
-        vy: 0,
-        size: 2
+      window.addEventListner("mousemove", (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
       });
-    }
 
-    // Animation loop
-    function animate() {
-	  ctx.fillStyle = "rgba(15, 15, 15, 0.2)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw particles
-      ctx.fillStyle = "white";
+      const particles = [];
       
-      particles.forEach(p => {
-        let dx = mouse.x - p.x;
-        let dy = mouse.y - p.y;
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: 0,
+          vy: 0,
+          size: 2
+        });
+      }
 
-    
-        p.vx += dx * 0.0005;
-        p.vy += dy * 0.0005;
+      function animate() {
+        ctx.fillStyle = "rgba(15, 15, 15, 0.2)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        p.vx *= 0.95;
-        p.vy *= 0.95;
+        ctx.fillStyle.forEach(p => {
+          let dx = mouse.x - p.x;
+          let dy = mouse.y - p.y;
 
-        
-        p.x += p.vx;
-        p.y += p.vy;
+          p.vx += dx * 0.0005;
+          p.vy += dy * 0.0005;
 
-        // Draw dot
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
+          p.vx *= 0.95;
+          p.vy *= 0.95;
 
-      requestAnimationFrame(animate);
-    }
+          p.x += p.vx;
+          p.y += p.vy;
 
-    animate();
-  </script>
-</body>
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    </script>
+  </body>
 </html>

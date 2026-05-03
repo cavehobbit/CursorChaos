@@ -7,3 +7,4 @@ There are 6 Modes added: Attract, Repel, Swirl, Chaos amd gravity
 Works in any browser. Made with Html, css3 & JS
 (runs at 60fps on most devices)
 
+
